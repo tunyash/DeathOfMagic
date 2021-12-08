@@ -4,12 +4,14 @@ public class MoveToTargetState : IState
 {
     private readonly Mob _mob;
     private readonly Rigidbody2D _rigidbody;
+    private readonly RandomAccessMemory _ram;
     private readonly float _speed;
 
-    public MoveToTargetState(Mob mob, Rigidbody2D rigidbody2D, float speed)
+    public MoveToTargetState(Mob mob, Rigidbody2D rigidbody2D, RandomAccessMemory ram, float speed)
     {
         _mob = mob;
         _rigidbody = rigidbody2D;
+        _ram = ram;
         _speed = speed;
     }
 
@@ -20,12 +22,12 @@ public class MoveToTargetState : IState
 
     public void OnExit()
     {
-        _mob.TargetPosition = null;
+        _ram.TargetPosition = null;
     }
 
     public void Tick()
     {
-        var positionTo = _mob.TargetPosition.Value;
+        var positionTo = _ram.TargetPosition.Value;
 
         var position = _rigidbody.position;
         var distance = (positionTo - position).magnitude;

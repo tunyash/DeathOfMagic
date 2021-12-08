@@ -23,7 +23,7 @@ public class StateMachine
     private List<Transition> _currentTransitions = new List<Transition>();
     private List<Transition> _anyTransitions = new List<Transition>();
 
-    private static readonly List<Transition> EmptyTransitions = new List<Transition>(0);
+    private readonly static List<Transition> EmptyTransitions = new List<Transition>(0);
 
     public void Tick()
     {
