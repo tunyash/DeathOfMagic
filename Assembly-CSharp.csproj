@@ -94,6 +94,7 @@
     <Compile Include="Assets\Scripts\Backup\States\HarvestResource.cs" />
     <Compile Include="Assets\Scripts\StateMachine\CollidedItems.cs" />
     <Compile Include="Assets\Scripts\StateMachine\States\MoveToTargetState.cs" />
+    <Compile Include="Assets\Scripts\StateMachine\INamedState.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

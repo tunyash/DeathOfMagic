@@ -6,6 +6,8 @@ public class RandomAccessMemory
 {
     public Vector2? TargetPosition;
 
+    public GameObject TalkingTarget;
+
     private HashSet<GameObject> _objects;
 
     public IEnumerable<GameObject> Objects => _objects;

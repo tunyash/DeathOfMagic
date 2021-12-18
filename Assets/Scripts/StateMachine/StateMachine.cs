@@ -19,11 +19,14 @@ public class StateMachine
 {
     private IState _currentState;
 
+    // todo transitions by Name()..? not by type
     private Dictionary<Type, List<Transition>> _transitions = new Dictionary<Type,List<Transition>>();
     private List<Transition> _currentTransitions = new List<Transition>();
     private List<Transition> _anyTransitions = new List<Transition>();
 
     private readonly static List<Transition> EmptyTransitions = new List<Transition>(0);
+
+    public string CurrentStateName => _currentState.Name();
 
     public void Tick()
     {
@@ -38,7 +41,7 @@ public class StateMachine
 
     public void SetState(IState state)
     {
-        Debug.Log($"SetState {state.GetType()}");
+        Debug.Log($"SetState {state.Name()}");
 
         if (state == _currentState)
         {
@@ -107,5 +110,13 @@ public class StateMachine
         }
 
         return null;
+    }
+}
+
+public static class StateMachineExtentions
+{
+    public static string Name(this IState state)
+    {
+        return (state as INamedState)?.Name ?? state.GetType().Name;
     }
 }
