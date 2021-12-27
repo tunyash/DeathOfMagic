@@ -20,7 +20,7 @@ public class StateMachine
     private IState _currentState;
 
     // todo transitions by Name()..? not by type
-    private Dictionary<Type, List<Transition>> _transitions = new Dictionary<Type,List<Transition>>();
+    private Dictionary<string, List<Transition>> _transitions = new Dictionary<string, List<Transition>>();
     private List<Transition> _currentTransitions = new List<Transition>();
     private List<Transition> _anyTransitions = new List<Transition>();
 
@@ -51,7 +51,7 @@ public class StateMachine
         _currentState?.OnExit();
         _currentState = state;
 
-        _transitions.TryGetValue(_currentState.GetType(), out _currentTransitions);
+        _transitions.TryGetValue(_currentState.Name(), out _currentTransitions);
 
         if (_currentTransitions == null)
         {
@@ -65,10 +65,10 @@ public class StateMachine
     {
         Debug.Log($"AddTransition from {from.GetType()}, to {to.GetType()}");
 
-        if (_transitions.TryGetValue(from.GetType(), out var transitions) == false)
+        if (_transitions.TryGetValue(from.Name(), out var transitions) == false)
         {
             transitions = new List<Transition>();
-            _transitions[from.GetType()] = transitions;
+            _transitions[from.Name()] = transitions;
         }
       
         transitions.Add(new Transition(to, predicate));

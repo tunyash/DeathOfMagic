@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿
+/*
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,7 +13,7 @@ public class HarvestApplesState : IState
 
     private float _timeStart;
 
-    public HarvestApplesState(Mob mob)
+    public HarvestApplesState(RandomAccessMemory ram)
     {
         _mob = mob;
     }
@@ -27,7 +29,7 @@ public class HarvestApplesState : IState
 
     public void Tick()
     {
-        if (_mob.AppleTree.Apples.Count == 0)
+        if (_mob.Ram.AppleTree.Apples.Count == 0)
         {
             return;
         }
@@ -43,3 +45,5 @@ public class HarvestApplesState : IState
 
     }
 }
+
+    */

@@ -1,18 +1,19 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
-public class MoveToTargetState : IState
+public class MoveToTargetState : IState, INamedState
 {
-    private readonly Mob _mob;
     private readonly Rigidbody2D _rigidbody;
-    private readonly RandomAccessMemory _ram;
     private readonly float _speed;
+    private readonly Func<Vector2?> _positionFunc;
+    private readonly string _name;
 
-    public MoveToTargetState(Mob mob, Rigidbody2D rigidbody2D, RandomAccessMemory ram, float speed)
+    public MoveToTargetState(Rigidbody2D rigidbody2D, float speed, Func<Vector2?> positionFunc, string name = null)
     {
-        _mob = mob;
         _rigidbody = rigidbody2D;
-        _ram = ram;
         _speed = speed;
+        _positionFunc = positionFunc;
+        _name = name;
     }
 
     public void OnEnter()
@@ -22,18 +23,19 @@ public class MoveToTargetState : IState
 
     public void OnExit()
     {
-        _ram.TargetPosition = null;
     }
 
     public void Tick()
     {
-        var positionTo = _ram.TargetPosition.Value;
+        var positionTo = _positionFunc();
 
-        var position = _rigidbody.position;
-        var distance = (positionTo - position).magnitude;
-        var direction = (positionTo - position).normalized;
-        var speed = Mathf.Min(_speed * Time.deltaTime, distance);
+        if (positionTo == null)
+        {
+            return;
+        }
 
-        _rigidbody.position = position + speed * direction;
+        Movements.MoveTowards(_rigidbody, positionTo.Value, _speed);
     }
+
+    public string Name => GetType().Name + (_name == null ? string.Empty : "_" + _name);
 }

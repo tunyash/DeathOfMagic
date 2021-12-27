@@ -4,53 +4,74 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class Mob : MonoBehaviour
+public interface IMob
+{
+    MobApi Api { get; }
+}
+
+public class Mob : MonoBehaviour, IMob
 {
     [SerializeField] private Wallet _wallet;
-    [SerializeField] private float _speed = 1f;
+    [SerializeField] private float _speed = 0.5f;
     [SerializeField] private Rigidbody2D _rigidbody2D;
-    [SerializeField] private CollidedItems _collided;
-
-    public Tree AppleTree;
-    public Shop AppleShop;
+    [SerializeField] private TriggerHandler _visionHandler;
+    [SerializeField] private Animator _animator;
 
     private StateMachine _stateMachine;
     private RandomAccessMemory _ram = new RandomAccessMemory();
+    private Vision _vision;
+    private TriggerSet _triggers = new TriggerSet();
+    private VisionAnalyzer _visionAnalyzer;
 
-    public Vector2? TargetPosition// todo remove this
-    {
-        get
-        {
-            return _ram.TargetPosition;
-        }
-        set
-        {
-            _ram.TargetPosition = value;
-        }
-    }
+    public MobApi Api { get; private set; }
 
     // Start is called before the first frame update
-    void Awake()
+    void Start()
     {
+        Api = new MobApi(_ram, _animator, _rigidbody2D);
+
+        _vision = new Vision(_visionHandler);
+        _visionAnalyzer = new VisionAnalyzer(_visionHandler, _ram, 0.2f);
+
         _stateMachine = new StateMachine();
 
-        var moveState = new MoveToTargetState(this, _rigidbody2D, _ram, _speed);
-        var buyState = new BuyItemState(this, _wallet);
-        var harvestState = new HarvestApplesState(this);
+        // states
+        var moveState = new MoveToTargetState( _rigidbody2D, _speed, () => _ram.TargetPosition );
         var idleState = new IdleState();
-        var thinkState = new ThinkState(this, _wallet);
+        var thinkState = new ThinkState( _ram, Room.Instance.Size );
 
+        // subscribe
         AT(thinkState, moveState, Transitions.TargetDetected(_ram));
-        AT(moveState, harvestState, Transitions.CollidedObjectWithName(_collided, "Tree"));
-        AT(moveState, buyState, Transitions.CollidedObjectWithName(_collided, "Shop"));
+        AT(moveState, thinkState, Transitions.TargetReached(_rigidbody2D, () => _ram.TargetPosition));
 
+        // dialog
+        const float talkingDistance = 2f;
+        var waveState = new WaveState(this, _animator, _vision, _ram).ToTimerState();
+        var walkToTalkState = new MoveToTargetState(_rigidbody2D, _speed, () => _ram.TalkingTarget?.Api?.Position, "talk" );
+        var talkState = new TalkState(_animator, _rigidbody2D);
+        var listenState = new ListenState();
 
+        Func<bool> hasTalkingTargetTransition = () => _ram.TalkingTarget != null;
+        Func<bool> wavedBackTransition = () => _ram.TalkingTarget?.Api.TalkingTarget?.Equals(this) ?? false;
+        Func<bool> waveFinishedTransition = () => waveState.IsTimeout(2);
+        Func<bool> gotCloseToTalkingTarget = () => (_ram.TalkingTarget.Api.Position - _rigidbody2D.position).sqrMagnitude <= talkingDistance;
+        Func<bool> talkingTargetIsTalking = () => _ram.TalkingTarget?.Api?.AnimationState == Constants.AnimationParams.Talk;
+
+        AT(moveState, waveState, hasTalkingTargetTransition);
+        AT(waveState, thinkState, Transitions.NotPredicate(hasTalkingTargetTransition));
+        AT(waveState, thinkState, Transitions.AndPredicate(waveFinishedTransition, Transitions.NotPredicate(wavedBackTransition)));
+        AT(waveState, walkToTalkState, Transitions.AndPredicate(waveFinishedTransition, wavedBackTransition));
+        AT(walkToTalkState, listenState, Transitions.AndPredicate(gotCloseToTalkingTarget, talkingTargetIsTalking));
+        AT(walkToTalkState, talkState, Transitions.AndPredicate(gotCloseToTalkingTarget, Transitions.NotPredicate(talkingTargetIsTalking)));
+
+        // start
         _stateMachine.SetState(thinkState);
     }
 
     private void Update()
     {
         _stateMachine.Tick();
+        _triggers.Refresh();
     }
 
     private void AT(IState from, IState to, Func<bool> condition)

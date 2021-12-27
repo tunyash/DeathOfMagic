@@ -4,33 +4,27 @@ using UnityEngine;
 
 public class ThinkState : IState
 {
+    private readonly RandomAccessMemory _ram;
+    private readonly Rect _room;
     private readonly Mob _mob;
     private readonly Wallet _wallet;
 
-    public ThinkState(Mob mob, Wallet wallet)
+    public ThinkState(RandomAccessMemory ram, Rect room)
     {
-        _mob = mob;
-        _wallet = wallet;
+        _ram = ram;
+        _room = room;
     }
 
     public void OnEnter()
     {
-        if (_wallet.MoneyAmmount >= _mob.AppleShop.ApplePrice)
-        {
-            _mob.TargetPosition = _mob.AppleShop.GetComponent<Transform>().position;
-            return;
-        }
-
-        _mob.TargetPosition = _mob.AppleTree.GetComponent<Transform>().position;
+        _ram.TargetPosition = new Vector2(Random.Range(_room.min.x, _room.max.x), Random.Range(_room.min.y, _room.max.y));
     }
 
     public void OnExit()
     {
-        //throw new System.NotImplementedException();
     }
 
     public void Tick()
     {
-        //throw new System.NotImplementedException();
     }
 }
