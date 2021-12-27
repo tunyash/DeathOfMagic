@@ -23,7 +23,7 @@ public class VisionAnalyzer
         {
             if (_ram.TalkingTarget == null)
             {
-                if (Random.Range(0f, 1f) <= _chanceToTalk)
+                if (DomMath.IsChance(0.3f))
                 {
                     var mob = obj.GetComponent<IMob>();
 

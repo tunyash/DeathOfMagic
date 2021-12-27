@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class ListenState : IState
 {
+    private readonly RandomAccessMemory _ram;
+
+    public ListenState()
+    {
+    }
+
     public void Tick()
     {
     }

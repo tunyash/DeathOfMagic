@@ -16,6 +16,7 @@ public class Mob : MonoBehaviour, IMob
     [SerializeField] private Rigidbody2D _rigidbody2D;
     [SerializeField] private TriggerHandler _visionHandler;
     [SerializeField] private Animator _animator;
+    [SerializeField] private TextMesh _dialogText;
 
     private StateMachine _stateMachine;
     private RandomAccessMemory _ram = new RandomAccessMemory();
@@ -32,6 +33,7 @@ public class Mob : MonoBehaviour, IMob
 
         _vision = new Vision(_visionHandler);
         _visionAnalyzer = new VisionAnalyzer(_visionHandler, _ram, 0.2f);
+        var speechAnalyzer = new SpeechDecisionMaker(_ram);
 
         _stateMachine = new StateMachine();
 
@@ -47,8 +49,8 @@ public class Mob : MonoBehaviour, IMob
         // dialog
         const float talkingDistance = 2f;
         var waveState = new WaveState(this, _animator, _vision, _ram).ToTimerState();
-        var walkToTalkState = new MoveToTargetState(_rigidbody2D, _speed, () => _ram.TalkingTarget?.Api?.Position, "talk" );
-        var talkState = new TalkState(_animator, _rigidbody2D);
+        var walkToTalkState = new MoveToTargetState( _rigidbody2D, _speed, () => _ram.TalkingTarget?.Api?.Position, "talk" );
+        var talkState = new TalkState(_animator, _dialogText, speechAnalyzer, _ram).ToTimerState();
         var listenState = new ListenState();
 
         Func<bool> hasTalkingTargetTransition = () => _ram.TalkingTarget != null;
@@ -56,6 +58,9 @@ public class Mob : MonoBehaviour, IMob
         Func<bool> waveFinishedTransition = () => waveState.IsTimeout(2);
         Func<bool> gotCloseToTalkingTarget = () => (_ram.TalkingTarget.Api.Position - _rigidbody2D.position).sqrMagnitude <= talkingDistance;
         Func<bool> talkingTargetIsTalking = () => _ram.TalkingTarget?.Api?.AnimationState == Constants.AnimationParams.Talk;
+        Func<bool> talkingFinished = () => talkState.IsTimeout(1.5f);
+
+
 
         AT(moveState, waveState, hasTalkingTargetTransition);
         AT(waveState, thinkState, Transitions.NotPredicate(hasTalkingTargetTransition));
@@ -63,6 +68,11 @@ public class Mob : MonoBehaviour, IMob
         AT(waveState, walkToTalkState, Transitions.AndPredicate(waveFinishedTransition, wavedBackTransition));
         AT(walkToTalkState, listenState, Transitions.AndPredicate(gotCloseToTalkingTarget, talkingTargetIsTalking));
         AT(walkToTalkState, talkState, Transitions.AndPredicate(gotCloseToTalkingTarget, Transitions.NotPredicate(talkingTargetIsTalking)));
+
+        AT(talkState, listenState, Transitions.AndPredicate(talkingFinished, hasTalkingTargetTransition ));
+        AT(talkState, thinkState, Transitions.AndPredicate(talkingFinished, Transitions.NotPredicate(hasTalkingTargetTransition)));
+
+        AT(listenState, talkState, Transitions.NotPredicate(talkingTargetIsTalking));
 
         // start
         _stateMachine.SetState(thinkState);
