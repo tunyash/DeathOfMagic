@@ -32,15 +32,6 @@ public class Mob : MonoBehaviour, IMob
     // Start is called before the first frame update
     void Start()
     {
-        if (_isInput)
-        {
-            if (Input.GetKeyDown(KeyCode.Mouse0))
-            {
-
-                var pos = Input.mousePosition;
-                _ram.TargetPosition = Camera.main.ScreenToWorldPoint(pos);
-            }
-        }
 
         Api = new MobApi(_ram, _animator, _rigidbody2D);
 
@@ -58,16 +49,22 @@ public class Mob : MonoBehaviour, IMob
 
         // subscribe
         AT(thinkState, moveState, Transitions.TargetDetected(_ram));
-        AT(moveState, thinkState, Transitions.TargetReached(_rigidbody2D, () => _ram.TargetPosition));
 
-        DialogStateMachine.Add(_stateMachine, _ram, _animator, _dialogText, this, _rigidbody2D, speechAnalyzer, _speed, moveState, thinkState );
+        if (!_isInput)
+        {
+            AT(moveState, thinkState, Transitions.TargetReached(_rigidbody2D, () => _ram.TargetPosition));
+        }
+
+        if (!_isInput)
+        {
+            DialogStateMachine.Add(_stateMachine, _ram, _animator, _dialogText, this, _rigidbody2D, speechAnalyzer, _speed, moveState, thinkState );
+        }
 
         _stateMachine.AddAnyTransition(runFromDangerState, Transitions.SeeDanger(_ram));
         AT(runFromDangerState, thinkState, Transitions.NotPredicate(Transitions.SeeDanger(_ram)) );
-        _stateMachine.AddAnyTransition(runFromDangerState, Transitions.SeeDanger(_ram));
 
         // start
-        _stateMachine.SetState(thinkState);
+        _stateMachine.SetState(_isInput ? (IState) moveState : thinkState);
     }
 
     private Vector2 PositionToRunAway()
@@ -82,6 +79,17 @@ public class Mob : MonoBehaviour, IMob
 
     private void Update()
     {
+        if (_isInput)
+        {
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+            {
+
+                var pos = Input.mousePosition;
+                _ram.TargetPosition = Camera.main.ScreenToWorldPoint(pos);
+                Debug.Log(_ram.TargetPosition);
+            }
+        }
+
         _stateMachine.Tick();
         _triggers.Refresh();
     }
