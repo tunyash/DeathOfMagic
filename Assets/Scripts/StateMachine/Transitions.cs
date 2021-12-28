@@ -7,6 +7,9 @@ using Random = UnityEngine.Random;
 
 public static class Transitions
 {
+    public static Func<bool> True = () => true;
+    public static Func<bool> False = () => false;
+
     public static Func<bool> TargetDetected(RandomAccessMemory ram) => () => ram.TargetPosition.HasValue;
 
     public static Func<bool> TargetReached(Rigidbody2D rigidbody, Func<Vector2?> positionFunc, float delta = 0.01f) => () =>
@@ -25,7 +28,7 @@ public static class Transitions
     public static Func<bool> OrPredicate(Func<bool> one, Func<bool> two) => () => one() || two();
     public static Func<bool> NotPredicate(Func<bool> one) => () => !one();
 
-    public static Func<bool> SeeMob(Vision vision) => () => vision.Visible.Any();
+    public static Func<bool> SeeDanger(RandomAccessMemory ram) => () => ram.DangerousTarget != null;
 
     /// <summary>
     /// Chance from 0 to 1

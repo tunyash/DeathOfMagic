@@ -6,45 +6,33 @@ using UnityEngine;
 
 public class WaveState : IState
 {
-    private readonly Mob _thisMob;
+    private readonly Rigidbody2D _rigidbody;
     private readonly Animator _animator;
-    private readonly Vision _vision;
     private readonly RandomAccessMemory _ram;
-    private readonly float _waveTime;
 
-    private float _time;
-
-    public WaveState( Mob thisMob, Animator animator, Vision vision, RandomAccessMemory ram, float waveTime = 2)
+    public WaveState( Rigidbody2D rigidbody, Animator animator, RandomAccessMemory ram)
     {
-        _thisMob = thisMob;
+        _rigidbody = rigidbody;
         _animator = animator;
-        _vision = vision;
         _ram = ram;
-        _waveTime = waveTime;
     }
 
     public void Tick()
     {
-        if (Time.time - _time >= _waveTime)
+        if (_ram.TalkingTarget == null)
         {
-            _animator.SetBool(Constants.AnimationParams.Wave, false);
+            return;
         }
-        Debug.DrawLine(_ram.TalkingTarget.Api.Position, _thisMob.Api.Position, Color.blue);
+        Debug.DrawLine(_ram.TalkingTarget.Api.Position, _rigidbody.position, Color.blue, 0.2f);
     }
 
     public void OnEnter()
     {
-        _time = Time.time;
         _animator.SetBool(Constants.AnimationParams.Wave, true );
     }
 
     public void OnExit()
     {
-        if (!(_ram.TalkingTarget?.Api?.TalkingTarget?.Equals(_thisMob) ?? false))
-        {
-            _ram.TalkingTarget = null;
-        }
-
         _animator.SetBool(Constants.AnimationParams.Wave, false );
     }
 }

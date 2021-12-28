@@ -2,28 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ListenState : IState
+public class EndDialogState : IState
 {
     private readonly RandomAccessMemory _ram;
 
-    public ListenState(RandomAccessMemory ram)
+    public EndDialogState(RandomAccessMemory ram, Animator animator)
     {
         _ram = ram;
     }
 
     public void Tick()
     {
-        var phrase = _ram.TalkingTarget?.Api.Talking.CurrentPhrase;
-        if (phrase == null)
-        {
-            return;
-        }
-        _ram.LastHeardPhrase = phrase;
     }
 
     public void OnEnter()
     {
-        Tick();
+        _ram.TalkingTarget = null;
+        _ram.LastHeardPhrase = null;
     }
 
     public void OnExit()

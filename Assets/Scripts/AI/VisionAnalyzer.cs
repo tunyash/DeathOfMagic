@@ -15,21 +15,45 @@ public class VisionAnalyzer
         _chanceToTalk = chanceToTalk;
 
         _handler.EnterCollision += OnEnterCollision;
+        _handler.ExitCollision += OnExitCollision;
+    }
+
+    private void OnExitCollision(GameObject obj)
+    {
+        if (obj.name.StartsWith("Mob"))
+        {
+            if (obj.name == "Mob bob")
+            {
+                _ram.DangerousTarget = null;
+            }
+            else if (obj.Equals((_ram.TalkingTarget as MonoBehaviour)?.gameObject))
+            {
+                _ram.TalkingTarget = null;
+                _ram.LastHeardPhrase = null;
+            }
+        }
     }
 
     private void OnEnterCollision(GameObject obj)
     {
         if (obj.name.StartsWith("Mob"))
         {
+            var mob = obj.GetComponent<IMob>();
+
+            if (obj.name == "Mob bob")
+            {
+                _ram.DangerousTarget = mob;
+                return;
+            }
+
             if (_ram.TalkingTarget == null)
             {
-                if (DomMath.IsChance(0.3f))
+                if (DomMath.IsChance(_chanceToTalk))
                 {
-                    var mob = obj.GetComponent<IMob>();
-
-                    if (mob.Api.AnimationState == Constants.AnimationParams.None)
+                    if (mob.Api.Talking.CurrentPhrase == null)
                     {
                         _ram.TalkingTarget = mob;
+                        _ram.LastHeardPhrase = null;
                     }
                 }
             }

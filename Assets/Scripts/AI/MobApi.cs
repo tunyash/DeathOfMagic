@@ -2,6 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public class TalkingApi
+{
+    private readonly RandomAccessMemory _ram;
+
+    public IMob Target => _ram.TalkingTarget;
+    public Phrase CurrentPhrase => _ram.CurrentPhrase;
+
+    public TalkingApi(RandomAccessMemory ram)
+    {
+        _ram = ram;
+    }
+}
+
 public class MobApi
 {
     private readonly RandomAccessMemory _ram;
@@ -13,14 +26,10 @@ public class MobApi
         _ram = ram;
         _animator = animator;
         _rigidbody = rigidbody;
+        Talking = new TalkingApi(_ram);
     }
 
-    public string AnimationState =>
-        _animator.GetBool(Constants.AnimationParams.Wave)
-            ? Constants.AnimationParams.Wave
-            : (_animator.GetBool(Constants.AnimationParams.Talk) ? Constants.AnimationParams.Talk : Constants.AnimationParams.None);
-
-    public IMob TalkingTarget => _ram.TalkingTarget;
+    public TalkingApi Talking { get; }
 
     public Vector2 Position => _rigidbody.position;
 }

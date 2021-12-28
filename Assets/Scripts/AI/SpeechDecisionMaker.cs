@@ -2,6 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public class Phrase
+{
+    public bool IsGoodbye;
+    public string Text;
+}
+
 public class SpeechDecisionMaker
 {
     private readonly RandomAccessMemory _ram;
@@ -33,15 +39,10 @@ public class SpeechDecisionMaker
         _byeChance = byeChance;
     }
 
-    public string Analyze(out bool isGoodbye)
+    public Phrase GenerateSpeech()
     {
-        isGoodbye = DomMath.IsChance(_byeChance) || _ram.TalkingTarget.Api.TalkingTarget == null;
+        var isGoodbye = DomMath.IsChance(_byeChance) || (_ram.LastHeardPhrase?.IsGoodbye ?? false);
 
-        if (isGoodbye)
-        {
-            return _byeString;
-        }
-
-        return _phrases[Random.Range(0, _phrases.Length)];
+        return new Phrase{IsGoodbye = isGoodbye, Text = isGoodbye ? _byeString : _phrases[Random.Range(0, _phrases.Length)] };
     }
 }

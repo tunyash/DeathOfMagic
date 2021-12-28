@@ -84,7 +84,6 @@
     <Compile Include="Assets\Scripts\Wallet.cs" />
     <Compile Include="Assets\Scripts\StateMachine\States\StateExtentions.cs" />
     <Compile Include="Assets\Scripts\Backup\Entities\GatherableResource.cs" />
-    <Compile Include="Assets\Scripts\StateMachine\RandomAccessMemoryCache.cs" />
     <Compile Include="Assets\Scripts\Backup\States\ReturnToStockpile.cs" />
     <Compile Include="Assets\Scripts\AI\MobApi.cs" />
     <Compile Include="Assets\Scripts\StateMachine\TriggerSet.cs" />
@@ -111,6 +110,8 @@
     <Compile Include="Assets\Scripts\StateMachine\States\ListenState.cs" />
     <Compile Include="Assets\Scripts\AI\SpeechDecisionMaker.cs" />
     <Compile Include="Assets\Scripts\DomMath.cs" />
+    <Compile Include="Assets\Scripts\StateMachine\States\EndDialogState.cs" />
+    <Compile Include="Assets\Scripts\StateMachine\DialogStateMachine.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

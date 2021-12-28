@@ -9,8 +9,6 @@ public class TalkState : IState
     private readonly SpeechDecisionMaker _speech;
     private readonly RandomAccessMemory _ram;
 
-    private bool _isBye;
-
     public TalkState(Animator animator, TextMesh mesh, SpeechDecisionMaker speech, RandomAccessMemory ram)
     {
         _animator = animator;
@@ -25,22 +23,19 @@ public class TalkState : IState
 
     public void OnEnter()
     {
+        var phrase = _speech.GenerateSpeech();
+        _ram.CurrentPhrase = phrase;
+
         _mesh.gameObject.SetActive(true);
-        _mesh.text = _speech.Analyze(out _isBye);
-
-        if (_isBye)
-        {
-            _ram.TalkingTarget = null;
-        }
-
-        _animator.SetBool(ActionName, true);
+        _mesh.text = phrase.Text;
+        _animator.SetBool(phrase.IsGoodbye ? Constants.AnimationParams.Wave : Constants.AnimationParams.Talk, true);
     }
 
     public void OnExit()
     {
+        _ram.CurrentPhrase = null;
         _mesh.gameObject.SetActive(false);
-        _animator.SetBool(ActionName, false);
+        _animator.SetBool(Constants.AnimationParams.Talk, false);
+        _animator.SetBool(Constants.AnimationParams.Wave, false);
     }
-
-    private string ActionName => _isBye ? Constants.AnimationParams.Wave : Constants.AnimationParams.Talk;
 }
