@@ -236,6 +236,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _wallet: {fileID: 4822698700522598917}
   _speed: 2
+  _speedRun: 3
   _rigidbody2D: {fileID: 4822698700522598921}
   _visionHandler: {fileID: 4822698700522598915}
   _animator: {fileID: 4822698700522598920}
@@ -268,7 +269,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 2.1723948
+  m_Radius: 2
 --- !u!114 &4822698700522598915
 MonoBehaviour:
   m_ObjectHideFlags: 0
