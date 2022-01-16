@@ -15,12 +15,11 @@ public static class Transitions
     public static Func<bool> TargetReached(Rigidbody2D rigidbody, Func<Vector2?> positionFunc, float delta = 0.01f) => () =>
     {
         var target = positionFunc();
-        if (target == null)
-        {
-            return false;
-        }
-        return (target.Value - rigidbody.position).sqrMagnitude <= delta * delta;
+
+        return target == null ? false : Movements.IsTargetReached(rigidbody, target.Value, delta);
     };
+
+    public static Func<bool> TargetPositionReached(Rigidbody2D rigidbody, RandomAccessMemory ram) => TargetReached(rigidbody, () => ram.TargetPosition);
     
     public static Func<bool> CollidedObjectWithName(CollidedItems collided, string name) => () => collided.CollidedObjects.Any(o => o.name == name);
 

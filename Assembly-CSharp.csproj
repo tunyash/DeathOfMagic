@@ -61,11 +61,14 @@
     <Compile Include="Assets\Scripts\Backup\UI\LookAtCamera.cs" />
     <Compile Include="Assets\Scripts\StateMachine\States\BuyItemState.cs" />
     <Compile Include="Assets\Scripts\Backup\Entities\Gatherer.cs" />
+    <Compile Include="Assets\Scripts\StateMachine\DialogStateMachine.cs" />
     <Compile Include="Assets\Scripts\StateMachine\Entities\RandomAccessMemory.cs" />
+    <Compile Include="Assets\Scripts\DomMath.cs" />
     <Compile Include="Assets\Scripts\Backup\Entities\WoodDropper.cs" />
     <Compile Include="Assets\Scripts\Backup\UI\GatheredText.cs" />
     <Compile Include="Assets\Scripts\Backup\Entities\Beast.cs" />
     <Compile Include="Assets\Scripts\StateMachine\Entities\Mob.cs" />
+    <Compile Include="Assets\Scripts\AI\VisionAnalyzer.cs" />
     <Compile Include="Assets\Scripts\DomTaskExecutor.cs" />
     <Compile Include="Assets\Scripts\StateMachine\Transitions.cs" />
     <Compile Include="Assets\Scripts\Backup\States\Flee.cs" />
@@ -77,12 +80,14 @@
     <Compile Include="Assets\Scripts\StateMachine\States\MoveToTalkState.cs" />
     <Compile Include="Assets\Scripts\StateMachine\Constants.cs" />
     <Compile Include="Assets\Scripts\StateMachine\States\ThinkState.cs" />
+    <Compile Include="Assets\Scripts\StateMachine\States\TalkState.cs" />
     <Compile Include="Assets\Scripts\Time\DomTime.cs" />
     <Compile Include="Assets\Scripts\StateMachine\States\WaveState.cs" />
     <Compile Include="Assets\Scripts\PickUpTask.cs" />
     <Compile Include="Assets\Scripts\Backup\Entities\StockPile.cs" />
     <Compile Include="Assets\Scripts\Wallet.cs" />
     <Compile Include="Assets\Scripts\StateMachine\States\StateExtentions.cs" />
+    <Compile Include="Assets\Scripts\StateMachine\States\EndDialogState.cs" />
     <Compile Include="Assets\Scripts\Backup\Entities\GatherableResource.cs" />
     <Compile Include="Assets\Scripts\Backup\States\ReturnToStockpile.cs" />
     <Compile Include="Assets\Scripts\AI\MobApi.cs" />
@@ -91,7 +96,9 @@
     <Compile Include="Assets\Scripts\StateMachine\StateMachine.cs" />
     <Compile Include="Assets\Scripts\Backup\States\SearchForResource.cs" />
     <Compile Include="Assets\Scripts\StateMachine\ExecutionStatus.cs" />
+    <Compile Include="Assets\Scripts\AI\SpeechDecisionMaker.cs" />
     <Compile Include="Assets\Scripts\WalkingTask.cs" />
+    <Compile Include="Assets\Scripts\StateMachine\States\ListenState.cs" />
     <Compile Include="Assets\Scripts\AI\TriggerHandler.cs" />
     <Compile Include="Assets\Scripts\WalkingTaskController.cs" />
     <Compile Include="Assets\Scripts\StateMachine\Entities\Shop.cs" />
@@ -105,13 +112,7 @@
     <Compile Include="Assets\Scripts\Backup\States\HarvestResource.cs" />
     <Compile Include="Assets\Scripts\StateMachine\CollidedItems.cs" />
     <Compile Include="Assets\Scripts\StateMachine\States\MoveToTargetState.cs" />
-    <Compile Include="Assets\Scripts\AI\VisionAnalyzer.cs" />
-    <Compile Include="Assets\Scripts\StateMachine\States\TalkState.cs" />
-    <Compile Include="Assets\Scripts\StateMachine\States\ListenState.cs" />
-    <Compile Include="Assets\Scripts\AI\SpeechDecisionMaker.cs" />
-    <Compile Include="Assets\Scripts\DomMath.cs" />
-    <Compile Include="Assets\Scripts\StateMachine\States\EndDialogState.cs" />
-    <Compile Include="Assets\Scripts\StateMachine\DialogStateMachine.cs" />
+    <Compile Include="Assets\Scripts\StateMachine\States\RunAwayState.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />

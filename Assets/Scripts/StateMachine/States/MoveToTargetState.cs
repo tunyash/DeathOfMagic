@@ -34,7 +34,7 @@ public class MoveToTargetState : IState, INamedState
             return;
         }
 
-        Movements.MoveTowards(_rigidbody, positionTo.Value, _speed);
+        Movements.MoveTo(_rigidbody, positionTo.Value, _speed);
     }
 
     public string Name => GetType().Name + (_name == null ? string.Empty : "_" + _name);

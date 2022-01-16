@@ -45,7 +45,7 @@ public class Mob : MonoBehaviour, IMob
         var moveState = new MoveToTargetState( _rigidbody2D, _speed, () => _ram.TargetPosition );
         var idleState = new IdleState();
         var thinkState = new ThinkState( _ram, Room.Instance.Size );
-        var runFromDangerState = new MoveToTargetState(_rigidbody2D, _speedRun, () => PositionToRunAway(), "danger");
+        var runFromDangerState = new RunAwayState(_ram, _rigidbody2D, _speedRun);
 
         // subscribe
         AT(thinkState, moveState, Transitions.TargetDetected(_ram));
@@ -61,20 +61,10 @@ public class Mob : MonoBehaviour, IMob
         }
 
         _stateMachine.AddAnyTransition(runFromDangerState, Transitions.SeeDanger(_ram));
-        AT(runFromDangerState, thinkState, Transitions.NotPredicate(Transitions.SeeDanger(_ram)) );
+        AT(runFromDangerState, thinkState, Transitions.NotPredicate(Transitions.SeeDanger(_ram)));
 
         // start
         _stateMachine.SetState(_isInput ? (IState) moveState : thinkState);
-    }
-
-    private Vector2 PositionToRunAway()
-    {
-        if (_ram.DangerousTarget == null)
-        {
-            return new Vector2();
-        }
-
-        return (_ram.DangerousTarget.Api.Position - _rigidbody2D.position) * -10;
     }
 
     private void Update()
