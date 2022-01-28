@@ -6,46 +6,36 @@ using UnityEngine;
 public class DialogStateMachine
 {
     public static void Add(StateMachine stateMachine, RandomAccessMemory ram, 
-        Animator animator, TextMesh dialogText, Mob mob, Rigidbody2D rigidbody2D, 
-        SpeechDecisionMaker speechAnalyzer, float speed, IState inputState, IState outputState)
+        Animator animator, ISpeechDecisionMaker speechAnalyzer, float speed, out IState startState, out IState endState)
     {
         void AT(IState from, IState to, Func<bool> condition)
         {
             stateMachine.AddTransition(from, to, condition);
         }
 
-        // dialog
-        const float talkingDistance = 2f;
-        var waveState = new WaveState(rigidbody2D, animator, ram).ToTimerState();
-        var approachCompanionState = new MoveToTargetState(rigidbody2D, speed, () => ram.TalkingTarget?.Api?.Position, "talk");
-        var talkState = new TalkState(animator, dialogText, speechAnalyzer, ram).ToTimerState();
-        var listenState = new ListenState(ram);
-        var endTalkingState = new EndDialogState(ram, animator);
+        startState = new StartDialogState( speechAnalyzer, ram );
+        endState = new EndDialogState(ram, animator);
 
-        Func<bool> hasTalkingTarget = () => ram.TalkingTarget != null;
-        Func<bool> talkingTargetIsInterested = () => ram.TalkingTarget?.Api.Talking.Target?.Equals(mob) ?? false;
-        Func<bool> waveAnimationFinished = () => waveState.IsTimeout(2);
-        Func<bool> gotCloseToTalkingTarget = () => (ram.TalkingTarget.Api.Position - rigidbody2D.position).sqrMagnitude <= talkingDistance;
+        var talkState = new TalkState(animator, speechAnalyzer, ram).ToTimerState();
+        var listenState = new ListenState(ram, speechAnalyzer);
+
+        Func< bool > isTalking = () => ram.Dialog.CurrentSaidPhrase != null;
+        Func<bool> talkingTargetIsInterested = () => ram.TalkingTarget?.Api.Talking.Target?.Equals(ram.ThisMob) ?? false;
         Func<bool> talkingTargetIsTalking = () => ram.TalkingTarget?.Api.Talking.CurrentPhrase != null;
-        Func<bool> talkingAnimationFinished = () => talkState.IsTimeout(1.5f);
-        Func<bool> saidBye = () => ram.CurrentPhrase?.IsGoodbye ?? false;
-        Func<bool> heardBye = () => ram.LastHeardPhrase?.IsGoodbye ?? false;
+        Func<bool> saidBye = () => ram.Dialog.CurrentSaidPhrase?.IsGoodbye ?? false;
 
         var exitTransition = Transitions.NotPredicate(talkingTargetIsInterested);
-        AT(approachCompanionState, endTalkingState, exitTransition);
-        AT(talkState, endTalkingState, Transitions.AndPredicate(talkingAnimationFinished, exitTransition));
-        AT(listenState, endTalkingState, exitTransition);
-        AT(waveState, endTalkingState, Transitions.AndPredicate(waveAnimationFinished, exitTransition));
 
-        AT(waveState, approachCompanionState, Transitions.AndPredicate(waveAnimationFinished, talkingTargetIsInterested));
-        AT(approachCompanionState, listenState, Transitions.AndPredicate(gotCloseToTalkingTarget, talkingTargetIsTalking));
-        AT(approachCompanionState, talkState, Transitions.AndPredicate(gotCloseToTalkingTarget, Transitions.NotPredicate(talkingTargetIsTalking)));
-        AT(talkState, listenState, Transitions.AndPredicate(talkingAnimationFinished, Transitions.NotPredicate(saidBye)));
-        AT(talkState, endTalkingState, Transitions.AndPredicate(talkingAnimationFinished, saidBye));
-        AT(listenState, talkState, Transitions.OrPredicate(Transitions.NotPredicate(talkingTargetIsTalking), heardBye));
+        AT(startState, listenState, talkingTargetIsTalking);
+        AT(startState, talkState, Transitions.NotPredicate(talkingTargetIsTalking));
+        AT(startState, endState, exitTransition);
 
-        AT(inputState, waveState, hasTalkingTarget);
-        AT(endTalkingState, outputState, Transitions.True);
+        AT(talkState, listenState, Transitions.NotPredicate(isTalking));
+        AT(talkState, endState, exitTransition );
+        AT(talkState, endState, saidBye);
+
+        AT(listenState, talkState, Transitions.NotPredicate(talkingTargetIsTalking));
+        AT(listenState, endState, exitTransition );
     }
 
 }

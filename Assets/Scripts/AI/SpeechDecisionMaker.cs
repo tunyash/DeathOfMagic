@@ -4,23 +4,36 @@ using UnityEngine;
 
 public class Phrase
 {
-    public bool IsGoodbye;
-    public string Text;
+    public bool IsHello { get; set; }
+    public bool IsGoodbye { get; set; }
+    public string Text { get; set; }
+    public Animations Animation { get; set; }
 }
 
-public class SpeechDecisionMaker
+public interface ISpeechDecisionMaker
 {
-    private readonly RandomAccessMemory _ram;
+    IEnumerator GeneratePhrase(IMob thisMob, IMob targetMob, DialogMemory memory );
+}
+
+// todo to singleton
+public class SpeechDecisionMaker : ISpeechDecisionMaker
+{
+    public static SpeechDecisionMaker Instance { get; }
+
+    static SpeechDecisionMaker()
+    {
+        Instance = new SpeechDecisionMaker(  );
+    }
+
     private readonly float _byeChance;
+    private readonly bool _shouldWave;
 
     private readonly string[] _phrases = new[]
     {
         "Корова",
         "Очереди",
         "Ебаный МФЦ",
-        "Фестивально!",
         "Крутой пацан",
-        "Добавьте перца",
         "Посыпьте солью",
         "Идея на 100000 долларов!",
         "Ой иди нахуй",
@@ -33,16 +46,23 @@ public class SpeechDecisionMaker
 
     private string _byeString = "До свидания";
 
-    public SpeechDecisionMaker(RandomAccessMemory ram, float byeChance = 0.1f)
+    private SpeechDecisionMaker(float byeChance = 0.1f, bool shouldWave = true)
     {
-        _ram = ram;
         _byeChance = byeChance;
+        _shouldWave = shouldWave;
     }
 
-    public Phrase GenerateSpeech()
+    public IEnumerator GeneratePhrase(IMob thisMob, IMob targetMob, DialogMemory memory )//, Phrase phrase )
     {
-        var isGoodbye = DomMath.IsChance(_byeChance) || (_ram.LastHeardPhrase?.IsGoodbye ?? false);
+        yield return new WaitForSeconds( 2 );
 
-        return new Phrase{IsGoodbye = isGoodbye, Text = isGoodbye ? _byeString : _phrases[Random.Range(0, _phrases.Length)] };
+        var isHello = memory.LastSaidPhrase == null;
+
+        var isGoodbye = !isHello && ( DomMath.IsChance(_byeChance) || (memory.LastHeardPhrase?.IsGoodbye ?? false) );
+
+        var animation = ( ( isHello || isGoodbye ) && _shouldWave ) ? Animations.Wave : ( isHello || isGoodbye ? Animations.None : Animations.Talk );
+
+        memory.QueuedPhrase = new Phrase { IsGoodbye = isGoodbye, Text = isGoodbye ? _byeString : _phrases[Random.Range(0, _phrases.Length)], IsHello = true, Animation = animation };
     }
+
 }

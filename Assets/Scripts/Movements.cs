@@ -33,6 +33,7 @@ public static class Movements
 
     public static void MoveTowards(Rigidbody2D rigidbody, Vector2 direction, float speed, bool isNormalized = true)
     {
+        speed *= Time.deltaTime;
         direction = isNormalized ? direction : direction.normalized;
         rigidbody.position = ( rigidbody.position + speed * direction );
     }

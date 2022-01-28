@@ -13,7 +13,6 @@ public class VisionAnalyzer
         _handler = handler;
         _ram = ram;
         _chanceToTalk = chanceToTalk;
-
         _handler.EnterCollision += OnEnterCollision;
         _handler.ExitCollision += OnExitCollision;
     }
@@ -29,7 +28,6 @@ public class VisionAnalyzer
             else if (obj.Equals((_ram.TalkingTarget as MonoBehaviour)?.gameObject))
             {
                 _ram.TalkingTarget = null;
-                _ram.LastHeardPhrase = null;
             }
         }
     }
@@ -50,10 +48,9 @@ public class VisionAnalyzer
             {
                 if (DomMath.IsChance(_chanceToTalk))
                 {
-                    if (mob.Api.Talking.CurrentPhrase == null)
+                    if (mob.Api.Talking.Target?.Equals(_ram.ThisMob) ?? true)
                     {
                         _ram.TalkingTarget = mob;
-                        _ram.LastHeardPhrase = null;
                     }
                 }
             }

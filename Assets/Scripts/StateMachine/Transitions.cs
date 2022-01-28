@@ -16,14 +16,15 @@ public static class Transitions
     {
         var target = positionFunc();
 
-        return target == null ? false : Movements.IsTargetReached(rigidbody, target.Value, delta);
+        return target != null && Movements.IsTargetReached(rigidbody, target.Value, delta);
     };
 
-    public static Func<bool> TargetPositionReached(Rigidbody2D rigidbody, RandomAccessMemory ram) => TargetReached(rigidbody, () => ram.TargetPosition);
+    public static Func<bool> TargetPositionReached(Rigidbody2D rigidbody, RandomAccessMemory ram, float delta = 0.01f) => TargetReached(rigidbody, () => ram.TargetPosition, delta);
     
     public static Func<bool> CollidedObjectWithName(CollidedItems collided, string name) => () => collided.CollidedObjects.Any(o => o.name == name);
 
     public static Func<bool> AndPredicate(Func<bool> one, Func<bool> two) => () => one() && two();
+    public static Func<bool> AndPredicate(Func<bool> one, Func<bool> two, Func<bool> three) => () => one() && two() && three();
     public static Func<bool> OrPredicate(Func<bool> one, Func<bool> two) => () => one() || two();
     public static Func<bool> NotPredicate(Func<bool> one) => () => !one();
 

@@ -18,7 +18,6 @@ public class EndDialogState : IState
     public void OnEnter()
     {
         _ram.TalkingTarget = null;
-        _ram.LastHeardPhrase = null;
     }
 
     public void OnExit()

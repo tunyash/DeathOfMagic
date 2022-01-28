@@ -20,12 +20,10 @@ public class Mob : MonoBehaviour, IMob
     [SerializeField] private TextMesh _dialogText;
 
     private StateMachine _stateMachine;
-    private RandomAccessMemory _ram = new RandomAccessMemory();
+    //private readonly RandomAccessMemory _ram;
     private Vision _vision;
     private TriggerSet _triggers = new TriggerSet();
     private VisionAnalyzer _visionAnalyzer;
-
-    [SerializeField] private bool _isInput;
 
     public MobApi Api { get; private set; }
 
@@ -33,53 +31,37 @@ public class Mob : MonoBehaviour, IMob
     void Start()
     {
 
-        Api = new MobApi(_ram, _animator, _rigidbody2D);
+        var ram  = new RandomAccessMemory(this, this);
+        Api = new MobApi(ram, _animator, _rigidbody2D);
 
         _vision = new Vision(_visionHandler);
-        _visionAnalyzer = new VisionAnalyzer(_visionHandler, _ram, 0.2f);
-        var speechAnalyzer = new SpeechDecisionMaker(_ram);
+        _visionAnalyzer = new VisionAnalyzer(_visionHandler, ram, 0.2f);
+        var speechAnalyzer = SpeechDecisionMaker.Instance;
 
         _stateMachine = new StateMachine();
 
         // states
-        var moveState = new MoveToTargetState( _rigidbody2D, _speed, () => _ram.TargetPosition );
+        var moveState = new MoveToTargetState( _rigidbody2D, _speed, () => ram.TargetPosition );
         var idleState = new IdleState();
-        var thinkState = new ThinkState( _ram, Room.Instance.Size );
-        var runFromDangerState = new RunAwayState(_ram, _rigidbody2D, _speedRun);
+        var thinkState = new ThinkState( ram, Room.Instance.Size );
+        var runFromDangerState = new RunAwayState(ram, _rigidbody2D, _speedRun);
 
         // subscribe
-        AT(thinkState, moveState, Transitions.TargetDetected(_ram));
+        AT(thinkState, moveState, Transitions.TargetDetected(ram));
+        AT(moveState, thinkState, Transitions.TargetPositionReached(_rigidbody2D, ram));
 
-        if (!_isInput)
-        {
-            AT(moveState, thinkState, Transitions.TargetReached(_rigidbody2D, () => _ram.TargetPosition));
-        }
+        //DialogStateMachine.Add(_stateMachine, _ram, _animator, this, _rigidbody2D, speechAnalyzer, _speed, thinkState, moveState, thinkState );
 
-        if (!_isInput)
-        {
-            DialogStateMachine.Add(_stateMachine, _ram, _animator, _dialogText, this, _rigidbody2D, speechAnalyzer, _speed, moveState, thinkState );
-        }
-
-        _stateMachine.AddAnyTransition(runFromDangerState, Transitions.SeeDanger(_ram));
-        AT(runFromDangerState, thinkState, Transitions.NotPredicate(Transitions.SeeDanger(_ram)));
+        _stateMachine.AddAnyTransition(runFromDangerState, Transitions.SeeDanger(ram));
+        //AT(runFromDangerState, thinkState, Transitions.NotPredicate(Transitions.SeeDanger(_ram)));
+        AT(runFromDangerState, thinkState, Transitions.TargetPositionReached(_rigidbody2D, ram) );
 
         // start
-        _stateMachine.SetState(_isInput ? (IState) moveState : thinkState);
+        _stateMachine.SetState(thinkState);
     }
 
     private void Update()
     {
-        if (_isInput)
-        {
-            if (Input.GetKeyDown(KeyCode.Mouse0))
-            {
-
-                var pos = Input.mousePosition;
-                _ram.TargetPosition = Camera.main.ScreenToWorldPoint(pos);
-                Debug.Log(_ram.TargetPosition);
-            }
-        }
-
         _stateMachine.Tick();
         _triggers.Refresh();
     }

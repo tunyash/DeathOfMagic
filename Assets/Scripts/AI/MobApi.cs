@@ -7,7 +7,12 @@ public class TalkingApi
     private readonly RandomAccessMemory _ram;
 
     public IMob Target => _ram.TalkingTarget;
-    public Phrase CurrentPhrase => _ram.CurrentPhrase;
+    public Phrase CurrentPhrase => _ram.Dialog.CurrentSaidPhrase;
+
+    public void ForceTalk(IMob other)
+    {
+        _ram.TalkingTarget = other;
+    }
 
     public TalkingApi(RandomAccessMemory ram)
     {
@@ -26,7 +31,7 @@ public class MobApi
         _ram = ram;
         _animator = animator;
         _rigidbody = rigidbody;
-        Talking = new TalkingApi(_ram);
+        Talking = new TalkingApi(_ram );
     }
 
     public TalkingApi Talking { get; }

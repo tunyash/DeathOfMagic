@@ -8,6 +8,7 @@ public class ThinkState : IState
     private readonly Rect _room;
     private readonly Mob _mob;
     private readonly Wallet _wallet;
+    private float _timeEnd;
 
     public ThinkState(RandomAccessMemory ram, Rect room)
     {
@@ -17,7 +18,8 @@ public class ThinkState : IState
 
     public void OnEnter()
     {
-        _ram.TargetPosition = new Vector2(Random.Range(_room.min.x, _room.max.x), Random.Range(_room.min.y, _room.max.y));
+        _timeEnd = Time.realtimeSinceStartup + Random.Range(0, 3f);
+        _ram.TargetPosition = null;
     }
 
     public void OnExit()
@@ -26,5 +28,9 @@ public class ThinkState : IState
 
     public void Tick()
     {
+        if (Time.realtimeSinceStartup >= _timeEnd)
+        {
+            _ram.TargetPosition = new Vector2(Random.Range(_room.min.x, _room.max.x), Random.Range(_room.min.y, _room.max.y));
+        }
     }
 }
