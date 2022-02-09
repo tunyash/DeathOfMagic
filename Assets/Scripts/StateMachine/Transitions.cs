@@ -23,10 +23,10 @@ public static class Transitions
     
     public static Func<bool> CollidedObjectWithName(CollidedItems collided, string name) => () => collided.CollidedObjects.Any(o => o.name == name);
 
-    public static Func<bool> AndPredicate(Func<bool> one, Func<bool> two) => () => one() && two();
-    public static Func<bool> AndPredicate(Func<bool> one, Func<bool> two, Func<bool> three) => () => one() && two() && three();
-    public static Func<bool> OrPredicate(Func<bool> one, Func<bool> two) => () => one() || two();
-    public static Func<bool> NotPredicate(Func<bool> one) => () => !one();
+    public static Func<bool> And(Func<bool> one, Func<bool> two) => () => one() && two();
+    public static Func<bool> And(Func<bool> one, Func<bool> two, Func<bool> three) => () => one() && two() && three();
+    public static Func<bool> Or(Func<bool> one, Func<bool> two) => () => one() || two();
+    public static Func<bool> Not(Func<bool> one) => () => !one();
 
     public static Func<bool> SeeDanger(RandomAccessMemory ram) => () => ram.DangerousTarget != null;
 
@@ -37,8 +37,10 @@ public static class Transitions
     /// <returns></returns>
     public static Func<bool> Chance(float value) => () => Random.Range(0f, 1f) <= value;
 
+    public static Func< bool > StateTimeout( StateMachine stateMachine, float value ) => () => stateMachine.StateTimeSeconds >= value;
 
     public static Func<bool> TriggerToTransition(this TriggerSet triggers, string name) => () => triggers.IsTrigger(name);
-    public static Func<bool> TriggerToTransition(this TriggerSet triggers, string name, float chance) => () => AndPredicate(TriggerToTransition(triggers, name), Chance(chance) )();
+    public static Func<bool> TriggerToTransition(this TriggerSet triggers, string name, float chance) => () => And(TriggerToTransition(triggers, name), Chance(chance) )();
+
 }
 

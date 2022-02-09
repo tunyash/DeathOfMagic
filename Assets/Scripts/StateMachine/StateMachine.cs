@@ -17,7 +17,9 @@ using UnityEngine;
 
 public class StateMachine
 {
+    private readonly bool _shouldLog;
     private IState _currentState;
+    private float _timeStart;
 
     // todo transitions by Name()..? not by type
     private Dictionary<string, List<Transition>> _transitions = new Dictionary<string, List<Transition>>();
@@ -27,6 +29,14 @@ public class StateMachine
     private readonly static List<Transition> EmptyTransitions = new List<Transition>(0);
 
     public string CurrentStateName => _currentState.Name();
+
+    public StateMachine( bool shouldLog = false )
+    {
+        _shouldLog = shouldLog;
+        _timeStart = Time.realtimeSinceStartup;
+    }
+
+    public float StateTimeSeconds => Time.realtimeSinceStartup - _timeStart;
 
     public void Tick()
     {
@@ -41,7 +51,10 @@ public class StateMachine
 
     public void SetState(IState state)
     {
-        Debug.Log($"SetState {state.Name()}");
+        if( _shouldLog )
+        {
+            Debug.Log($"SetState {state.Name()}");
+        }
 
         if (state == _currentState)
         {
@@ -59,11 +72,16 @@ public class StateMachine
         }
 
         _currentState.OnEnter();
+
+        _timeStart = Time.realtimeSinceStartup;
     }
 
     public void AddTransition(IState from, IState to, Func<bool> predicate)
     {
-        Debug.Log($"AddTransition from {from.GetType()}, to {to.GetType()}");
+        if( _shouldLog )
+        {
+            Debug.Log( $"AddTransition from {from.GetType()}, to {to.GetType()}" );
+        }
 
         if (_transitions.TryGetValue(from.Name(), out var transitions) == false)
         {

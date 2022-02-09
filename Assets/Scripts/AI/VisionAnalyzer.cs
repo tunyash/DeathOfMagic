@@ -46,7 +46,7 @@ public class VisionAnalyzer
 
             if (_ram.TalkingTarget == null)
             {
-                if (DomMath.IsChance(_chanceToTalk))
+                if (false && DomMath.IsChance(_chanceToTalk))
                 {
                     if (mob.Api.Talking.Target?.Equals(_ram.ThisMob) ?? true)
                     {

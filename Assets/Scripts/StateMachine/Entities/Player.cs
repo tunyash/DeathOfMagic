@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using UnityEngine;
 
 public class Player : MonoBehaviour, IMob
@@ -9,16 +10,20 @@ public class Player : MonoBehaviour, IMob
     [SerializeField] private Rigidbody2D _rigidbody;
     [SerializeField] private float _speed;
     [SerializeField] private float _runSpeed;
+    [SerializeField] private DialogUiViewBase _dialogUi;
+    [SerializeField] private TriggerHandler _triggerCoursor;
 
     private StateMachine _stateMachine;
     private Transform _selectedFrame;
     private RandomAccessMemory _ram;
+    private Coursor _coursor;
 
     public MobApi Api { get; private set; } 
 
     // Start is called before the first frame update
     void Start()
     {
+        _coursor = new Coursor(_triggerCoursor);
         _ram = new RandomAccessMemory(this, this);
         Api = new MobApi(_ram, _animator, _rigidbody);
         _stateMachine = new StateMachine();
@@ -26,12 +31,13 @@ public class Player : MonoBehaviour, IMob
         // states
         var moveState = new MoveToTargetState(_rigidbody, _speed, () => _ram.TargetPosition);
         var idleState = new IdleState();
+        var speechAnalyzer = new PlayerSpeechDecisionMaker( _dialogUi as IPlayerDialogUiView );
 
         // subscribe
         AT(idleState, moveState, Transitions.TargetDetected(_ram));
         AT(moveState, idleState, Transitions.TargetPositionReached(_rigidbody, _ram));
 
-        //DialogStateMachine.Add(_stateMachine, _ram, _animator, this, _rigidbody, new SpeechDecisionMaker(), _speed, idleState, idleState, moveState );
+        _stateMachine.AddDialogs(speechAnalyzer, _dialogUi, _rigidbody, _speed, _ram, _animator, idleState, moveState, idleState);
 
         _stateMachine.SetState(idleState);
 
@@ -59,16 +65,26 @@ public class Player : MonoBehaviour, IMob
             _selectedFrame.gameObject.SetActive(false);
         }
 
-        if (Input.GetKeyDown(KeyCode.Mouse0))
+        if (Input.GetKey(KeyCode.Mouse0))
         {
-
-            if( collidedTransform != null )
+            _coursor.Activated = true;
+            _coursor.Position = Camera.main.ScreenToWorldPoint( position );
+            if( _coursor.Selected != null )
             {
-                var mob = collidedTransform.transform.gameObject.GetComponent<IMob>();
-                _ram.TalkingTarget = mob;
+                _ram.TalkingTarget = _coursor.Selected;
             }
 
-            _ram.TargetPosition = Camera.main.ScreenToWorldPoint(position);
+            //if( collidedTransform != null )
+            //{
+            //    var mob = collidedTransform.gameObject.GetComponent<IMob>();
+            //    _ram.TalkingTarget = mob;
+            //}
+
+            //_ram.TargetPosition = Camera.main.ScreenToWorldPoint(position);
+        }
+        else
+        {
+            _coursor.Activated = false;
         }
 
         if( Input.GetKeyDown( KeyCode.Space ) )
@@ -83,39 +99,5 @@ public class Player : MonoBehaviour, IMob
     private void AT(IState from, IState to, Func<bool> condition)
     {
         _stateMachine.AddTransition(from, to, condition);
-    }
-
-    private void AddDialogs(ISpeechDecisionMaker speechAnalyzer, RandomAccessMemory ram, Animator animator, IState enterState, IState exitState)
-    {
-        var startState = new StartDialogState(speechAnalyzer, ram);
-        var endState = new EndDialogState(ram, animator);
-
-        var talkState = new TalkState(animator, speechAnalyzer, ram).ToTimerState();
-        var listenState = new ListenState(ram, speechAnalyzer);
-
-        Func<bool> cameToTalk = () => ram.TalkingTarget != null;
-        Func<bool> isTalking = () => ram.Dialog.CurrentSaidPhrase != null;
-        Func<bool> talkingTargetIsInterested = () => ram.TalkingTarget?.Api.Talking.Target?.Equals(ram.ThisMob) ?? false;
-        Func<bool> talkingTargetIsTalking = () => ram.TalkingTarget?.Api.Talking.CurrentPhrase != null;
-        Func<bool> saidBye = () => ram.Dialog.CurrentSaidPhrase?.IsGoodbye ?? false;
-
-        var exitTransition = Transitions.NotPredicate(talkingTargetIsInterested);
-
-        AT( enterState, startState, cameToTalk);
-
-        AT(startState, listenState, talkingTargetIsTalking);
-        AT(startState, talkState, isTalking);
-        AT(startState, endState, exitTransition);
-
-        AT(talkState, listenState, talkingTargetIsTalking);
-        AT(talkState, endState, exitTransition);
-        AT(talkState, endState, saidBye);
-
-        AT(listenState, talkState, isTalking);
-        AT(listenState, endState, exitTransition);
-
-        
-        AT(endState, exitState, exitTransition);
-
     }
 }

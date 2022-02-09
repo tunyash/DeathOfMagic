@@ -33,11 +33,12 @@ public class GamePause : MonoBehaviour
 
         if( mobs?.Length > 0 )
         {
+            // todo player as well
             mobsToCheck = mobs.Select( m => m as Mob ).Where( m => m != null );
         }
         foreach (var mob in mobsToCheck)
         {
-            mob.enabled = value ?? !mob.enabled;
+            mob.enabled = !value ?? !mob.enabled;
         }
     }
 }

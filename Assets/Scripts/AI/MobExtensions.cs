@@ -7,21 +7,24 @@ public static class MobExtensions
 {
     public static void Listen( RandomAccessMemory ram )
     {
-        if( ram.TalkingTarget == null )
+        ram.Dialog.CurrentHeardPhrase = ram.TalkingTarget?.Api.Talking?.CurrentPhrase;
+    }
+
+    public static bool IsListenTrigger(this DialogMemory dialog)
+    {
+        return dialog.CurrentHeardPhrase != null && !dialog.LastHeardPhrase.SafeEquals( dialog.CurrentHeardPhrase );
+    }
+
+    public static void GeneratePhrase(ISpeechDecisionMaker decisionMaker, RandomAccessMemory ram)
+    {
+        if( ram.Dialog.QueuedPhrase == null )
         {
-            return;
+            ram.Dialog.QueuedPhrase = decisionMaker.GeneratePhrase( ram.Dialog.CurrentHeardPhrase );
         }
-
-        ram.Dialog.CurrentHeardPhrase = ram.TalkingTarget.Api.Talking?.CurrentPhrase;
     }
 
-    public static Coroutine StartGeneratingPhrase(ISpeechDecisionMaker decisionMaker, RandomAccessMemory ram)
+    public static bool IsPlayer( this IMob mob )
     {
-        return ram.CoroutineInvoker.StartCoroutine( decisionMaker.GeneratePhrase( ram.ThisMob, ram.TalkingTarget, ram.Dialog ) );
-    }
-
-    public static void StopGeneratingPhrase(RandomAccessMemory ram, Coroutine coroutine)
-    {
-        ram.CoroutineInvoker.StopCoroutine( coroutine );
+        return ( mob as MonoBehaviour )?.gameObject.name == "Player";
     }
 }

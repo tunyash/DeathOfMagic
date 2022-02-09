@@ -5,14 +5,14 @@ using UnityEngine;
 public class TalkState : IState
 {
     private readonly Animator _animator;
-    private readonly ISpeechDecisionMaker _speech;
     private readonly RandomAccessMemory _ram;
+    private readonly DialogUiViewBase _dialogUi;
 
-    public TalkState(Animator animator, ISpeechDecisionMaker speech, RandomAccessMemory ram)
+    public TalkState(Animator animator, RandomAccessMemory ram, DialogUiViewBase dialogUi)
     {
         _animator = animator;
-        _speech = speech;
         _ram = ram;
+        _dialogUi = dialogUi;
     }
 
     public void Tick()
@@ -24,16 +24,14 @@ public class TalkState : IState
     {
         _ram.Dialog.CurrentSaidPhrase = _ram.Dialog.QueuedPhrase;
         _ram.Dialog.QueuedPhrase = null;
-
-        if (_ram.Dialog.CurrentSaidPhrase != null)
-        {
-            _animator.SetBool(Constants.AnimationParams.Talk, true);
-        }
+        _dialogUi.Talk(_ram.Dialog.CurrentSaidPhrase, _ram.TalkingTarget);
+        _animator.SetBool(Constants.AnimationParams.Talk, true);
     }
 
 
     public void OnExit()
     {
+        _dialogUi.Idle(_ram.TalkingTarget);
         _ram.Dialog.CurrentSaidPhrase = null;
         _animator?.SetBool(Constants.AnimationParams.Talk, false);
     }

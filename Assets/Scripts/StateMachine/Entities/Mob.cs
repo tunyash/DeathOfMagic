@@ -17,12 +17,13 @@ public class Mob : MonoBehaviour, IMob
     [SerializeField] private Rigidbody2D _rigidbody2D;
     [SerializeField] private TriggerHandler _visionHandler;
     [SerializeField] private Animator _animator;
-    [SerializeField] private TextMesh _dialogText;
+    [SerializeField] private DialogUiViewBase _dialogUi;
+    [SerializeField] private bool _shouldLog = false;
+    [SerializeField] private string _stateName = "oiuy";
 
     private StateMachine _stateMachine;
     //private readonly RandomAccessMemory _ram;
     private Vision _vision;
-    private TriggerSet _triggers = new TriggerSet();
     private VisionAnalyzer _visionAnalyzer;
 
     public MobApi Api { get; private set; }
@@ -36,34 +37,32 @@ public class Mob : MonoBehaviour, IMob
 
         _vision = new Vision(_visionHandler);
         _visionAnalyzer = new VisionAnalyzer(_visionHandler, ram, 0.2f);
-        var speechAnalyzer = SpeechDecisionMaker.Instance;
+        var speechAnalyzer = new SpeechDecisionMaker(this);
 
-        _stateMachine = new StateMachine();
+        _stateMachine = new StateMachine(_shouldLog);
 
         // states
         var moveState = new MoveToTargetState( _rigidbody2D, _speed, () => ram.TargetPosition );
-        var idleState = new IdleState();
-        var thinkState = new ThinkState( ram, Room.Instance.Size );
+        var idleState = new ThinkState( ram, Room.Instance.Size );
         var runFromDangerState = new RunAwayState(ram, _rigidbody2D, _speedRun);
 
         // subscribe
-        AT(thinkState, moveState, Transitions.TargetDetected(ram));
-        AT(moveState, thinkState, Transitions.TargetPositionReached(_rigidbody2D, ram));
+        AT(idleState, moveState, Transitions.TargetDetected(ram));
+        AT(moveState, idleState, Transitions.TargetPositionReached(_rigidbody2D, ram));
 
-        //DialogStateMachine.Add(_stateMachine, _ram, _animator, this, _rigidbody2D, speechAnalyzer, _speed, thinkState, moveState, thinkState );
+        _stateMachine.AddDialogs( speechAnalyzer, _dialogUi, _rigidbody2D, _speed, ram, _animator, idleState, moveState, idleState );
 
         _stateMachine.AddAnyTransition(runFromDangerState, Transitions.SeeDanger(ram));
-        //AT(runFromDangerState, thinkState, Transitions.NotPredicate(Transitions.SeeDanger(_ram)));
-        AT(runFromDangerState, thinkState, Transitions.TargetPositionReached(_rigidbody2D, ram) );
+        AT(runFromDangerState, idleState, Transitions.TargetPositionReached(_rigidbody2D, ram) );
 
         // start
-        _stateMachine.SetState(thinkState);
+        _stateMachine.SetState(idleState);
     }
 
     private void Update()
     {
         _stateMachine.Tick();
-        _triggers.Refresh();
+        _stateName = _stateMachine.CurrentStateName;
     }
 
     private void AT(IState from, IState to, Func<bool> condition)

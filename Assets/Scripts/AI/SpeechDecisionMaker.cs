@@ -12,21 +12,20 @@ public class Phrase
 
 public interface ISpeechDecisionMaker
 {
-    IEnumerator GeneratePhrase(IMob thisMob, IMob targetMob, DialogMemory memory );
+    void StartDialog(IMob target);
+    void EndDialog();
+    Phrase GeneratePhrase( Phrase listenedPhrase );
 }
 
 // todo to singleton
 public class SpeechDecisionMaker : ISpeechDecisionMaker
 {
-    public static SpeechDecisionMaker Instance { get; }
-
-    static SpeechDecisionMaker()
-    {
-        Instance = new SpeechDecisionMaker(  );
-    }
-
     private readonly float _byeChance;
-    private readonly bool _shouldWave;
+    private readonly MonoBehaviour _coroutineInvoker;
+    private bool _saidHi;
+    private IMob _target;
+    private string _byeString = "До свидания";
+    private string _hiString = "Привет";
 
     private readonly string[] _phrases = new[]
     {
@@ -34,7 +33,6 @@ public class SpeechDecisionMaker : ISpeechDecisionMaker
         "Очереди",
         "Ебаный МФЦ",
         "Крутой пацан",
-        "Посыпьте солью",
         "Идея на 100000 долларов!",
         "Ой иди нахуй",
         "Очевидно",
@@ -44,25 +42,93 @@ public class SpeechDecisionMaker : ISpeechDecisionMaker
         "Что за подстава?"
     };
 
-    private string _byeString = "До свидания";
 
-    private SpeechDecisionMaker(float byeChance = 0.1f, bool shouldWave = true)
+    private Phrase _generatedPhrase;
+    private Coroutine _coroutine;
+
+    private NodePhrase _node;
+
+    public SpeechDecisionMaker(MonoBehaviour coroutineInvoker, float byeChance = 0.3f )
     {
         _byeChance = byeChance;
-        _shouldWave = shouldWave;
+        _coroutineInvoker = coroutineInvoker;
+
+        _node = new NodePhrase( new NodePhrase( 
+                                               new NodePhrase( new NodePhrase(  ){Text = "Not much.."}, new NodePhrase() { Text = "Good.." }) { Text = "Sup?"}
+                                               ){ IsHello = true, Text = "Hello"}, 
+                                new NodePhrase(  ){IsGoodbye = true, Text = "Bye" } ){IsHello = true, Text = "HI!"};
     }
 
-    public IEnumerator GeneratePhrase(IMob thisMob, IMob targetMob, DialogMemory memory )//, Phrase phrase )
+    public void StartDialog( IMob target )
     {
-        yield return new WaitForSeconds( 2 );
-
-        var isHello = memory.LastSaidPhrase == null;
-
-        var isGoodbye = !isHello && ( DomMath.IsChance(_byeChance) || (memory.LastHeardPhrase?.IsGoodbye ?? false) );
-
-        var animation = ( ( isHello || isGoodbye ) && _shouldWave ) ? Animations.Wave : ( isHello || isGoodbye ? Animations.None : Animations.Talk );
-
-        memory.QueuedPhrase = new Phrase { IsGoodbye = isGoodbye, Text = isGoodbye ? _byeString : _phrases[Random.Range(0, _phrases.Length)], IsHello = true, Animation = animation };
+        _target = target;
+        _saidHi = false;
     }
 
+    public void EndDialog()
+    {
+        _target = null;
+        _generatedPhrase = null;
+        if ( _coroutine != null )
+        {
+            _coroutineInvoker.StopCoroutine(_coroutine);
+        }
+
+        _coroutine = null;
+    }
+
+    public Phrase GeneratePhrase( Phrase listenedPhrase )
+    {
+        return _target.IsPlayer() ? GenerateForPlayer( listenedPhrase ) : GenerateForMob( listenedPhrase );
+    }
+
+    private Phrase GenerateForPlayer(Phrase listenedPhrase)
+    {
+        if (listenedPhrase == null || listenedPhrase.IsHello)
+        {
+            if (!_saidHi)
+            {
+                _saidHi = true;
+                return _node;
+            }
+
+        }
+
+        if ( listenedPhrase == null )
+        {
+            return null;
+        }
+
+        if (listenedPhrase is INode<Phrase> nodePhrase)
+        {
+            if (nodePhrase.Child.Length > 0)
+            {
+                return nodePhrase.Child[Random.Range(0, nodePhrase.Child.Length - 1)].Value;
+            }
+
+            return new Phrase { IsGoodbye = true, Text = _byeString };
+        }
+
+        return new Phrase { Text = _phrases[Random.Range(0, _phrases.Length)] };
+    }
+
+    private Phrase GenerateForMob(Phrase listenedPhrase)
+    {
+        if( listenedPhrase == null || listenedPhrase.IsHello)
+        {
+            if( !_saidHi )
+            {
+                _saidHi = true;
+                return new Phrase { IsHello = true, Text = _hiString };
+            }
+
+        }
+
+        if (listenedPhrase?.IsGoodbye ?? false || DomMath.IsChance(_byeChance))
+        {
+            return new Phrase { IsGoodbye = true, Text = _byeString };
+        }
+
+        return new Phrase { Text = _phrases[Random.Range(0, _phrases.Length)] };
+    }
 }

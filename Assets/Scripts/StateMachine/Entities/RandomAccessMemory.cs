@@ -17,10 +17,7 @@ public class DialogMemory
         get => _currentSaid;
         set
         {
-            if(_currentSaid != null )
-            {
-                LastSaidPhrase = _currentSaid;
-            }
+            LastSaidPhrase = _currentSaid;
             _currentSaid = value;
         }
     }
@@ -28,12 +25,9 @@ public class DialogMemory
     public Phrase CurrentHeardPhrase
     {
         get => _currentHeard;
-        set
+        set 
         {
-            if (_currentHeard != null)
-            {
-                LastHeardPhrase = _currentHeard;
-            }
+            LastHeardPhrase = _currentHeard;
             _currentHeard = value;
         }
     }
@@ -43,6 +37,8 @@ public class DialogMemory
         LastSaidPhrase = null;
         LastHeardPhrase = null;
         QueuedPhrase = null;
+        CurrentSaidPhrase = null;
+        CurrentHeardPhrase = null;
     }
 }
 
