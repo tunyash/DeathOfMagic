@@ -9,7 +9,7 @@ public static class DialogStateMachine
     {
         Func<Vector2?> talkingTargetPositionFunc = () => ram.TalkingTarget?.Api.Position;
 
-        var approachState = new MoveToTargetState(rigidbody, speed, talkingTargetPositionFunc, "talk");
+        var approachState = new MoveToTargetState(animator, rigidbody, speed, talkingTargetPositionFunc, "talk");
         var startState = new StartDialogState(ram, dialogUi, speech);
         var endState = new EndDialogState(ram, speech, dialogUi);
         var talkState = new TalkState(animator, ram, dialogUi);

@@ -13,6 +13,7 @@ public class Player : MonoBehaviour, IMob
     [SerializeField] private DialogUiViewBase _dialogUi;
     [SerializeField] private TriggerHandler _triggerCoursor;
 
+    private SpriteFlipper _flipper = new SpriteFlipper(); // todo
     private StateMachine _stateMachine;
     private Transform _selectedFrame;
     private RandomAccessMemory _ram;
@@ -27,9 +28,10 @@ public class Player : MonoBehaviour, IMob
         _ram = new RandomAccessMemory(this, this);
         Api = new MobApi(_ram, _animator, _rigidbody);
         _stateMachine = new StateMachine();
+        _flipper.Parent = gameObject;
 
         // states
-        var moveState = new MoveToTargetState(_rigidbody, _speed, () => _ram.TargetPosition);
+        var moveState = new MoveToTargetState( _animator, _rigidbody, _speed, () => _ram.TargetPosition, null, _flipper, _ram);
         var idleState = new IdleState();
         var speechAnalyzer = new PlayerSpeechDecisionMaker( _dialogUi as IPlayerDialogUiView );
 
@@ -80,7 +82,7 @@ public class Player : MonoBehaviour, IMob
             //    _ram.TalkingTarget = mob;
             //}
 
-            //_ram.TargetPosition = Camera.main.ScreenToWorldPoint(position);
+            _ram.TargetPosition = Camera.main.ScreenToWorldPoint(position);
         }
         else
         {

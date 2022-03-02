@@ -42,7 +42,7 @@ public class Mob : MonoBehaviour, IMob
         _stateMachine = new StateMachine(_shouldLog);
 
         // states
-        var moveState = new MoveToTargetState( _rigidbody2D, _speed, () => ram.TargetPosition );
+        var moveState = new MoveToTargetState( _animator, _rigidbody2D, _speed, () => ram.TargetPosition );
         var idleState = new ThinkState( ram, Room.Instance.Size );
         var runFromDangerState = new RunAwayState(ram, _rigidbody2D, _speedRun);
 
